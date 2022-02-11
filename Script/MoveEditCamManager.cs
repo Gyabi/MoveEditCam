@@ -21,21 +21,18 @@ namespace MoveEditCam
         [SerializeField, Header("ハンドモード割り当てキー")]
         private KeyCode _modeHandKey = KeyCode.Q;
         [SerializeField, Header("Handモードの感度")]
-        private float _handSensitivity = 0.01f;
-        private Vector3 _handPreClickPos = new Vector3();
+        private float _handSensitivity = 0.5f;
         private bool _handMoveing = false;
 
         // HandWheelモード用変数
         [SerializeField, Header("HandWheelモードの感度")]
-        private float _handWheelSensitivity = 0.01f;
-        private Vector3 _handWheelPreClickPos = new Vector3();
+        private float _handWheelSensitivity = 1.0f;
 
         // FPSモード用変数
         [SerializeField, Header("FPS移動の感度")]
         private float _fpsMoveSensitivity = 0.01f;
         [SerializeField, Header("FPS視点移動の感度")]
-        private float _fpsEyeMoveSensitivity = 0.01f;
-        private Vector3 _fpsEyeMovePreClickPos = new Vector3();
+        private float _fpsEyeMoveSensitivity = 1f;
         
         // ホイール拡大用変数
         [SerializeField, Header("Wheel移動感度")]
@@ -73,10 +70,12 @@ namespace MoveEditCam
                 if(Input.GetMouseButtonDown(2))
                 {
                     this._mode = MoveEditCamMode.HandWheel;
+                    Cursor.lockState = CursorLockMode.Locked;
                 }
                 if(Input.GetMouseButtonUp(2))
                 {
                     this._mode = MoveEditCamMode.None;
+                    Cursor.lockState = CursorLockMode.None;
                 }
 
 
@@ -85,10 +84,12 @@ namespace MoveEditCam
                 {
                     // todo:ギズモのモードチェンジを無効にする
                     this._mode = MoveEditCamMode.FPS;
+                    Cursor.lockState = CursorLockMode.Locked;
                 }
                 if(Input.GetMouseButtonUp(1))
                 {
                     this._mode = MoveEditCamMode.None;
+                    Cursor.lockState = CursorLockMode.None;
                 }
 
                 ExeMove();
@@ -127,42 +128,32 @@ namespace MoveEditCam
             if(Input.GetMouseButtonDown(0))
             {
                 _handMoveing = true;
-                _handPreClickPos = Input.mousePosition;
+                Cursor.lockState = CursorLockMode.Locked;
             }
             if(Input.GetMouseButtonUp(0))
             {
                 _handMoveing = false;
+                Cursor.lockState = CursorLockMode.None;
             }
             if(_handMoveing)
             {
-                Vector2 delta = Input.mousePosition - _handPreClickPos;
+                Vector2 delta = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
                 this._cam.transform.Translate(-delta.x * _handSensitivity, -delta.y * _handSensitivity, 0);
-                _handPreClickPos = Input.mousePosition;
             }
         }
 
         void HandMoveWheel()
         {
-            if(Input.GetMouseButtonDown(2))
-            {
-                _handWheelPreClickPos = Input.mousePosition;
-            }
-            Vector2 delta = Input.mousePosition - _handWheelPreClickPos;
+            Vector2 delta = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
             this._cam.transform.Translate(-delta.x * _handWheelSensitivity, -delta.y * _handWheelSensitivity, 0);
-            _handWheelPreClickPos = Input.mousePosition;
         }
 
         void FPSMove()
         {
             // FPS視点移動
-            if(Input.GetMouseButtonDown(1))
-            {
-                _fpsEyeMovePreClickPos = Input.mousePosition;
-            }
-            Vector2 delta = Input.mousePosition - _fpsEyeMovePreClickPos;
+            Vector2 delta = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
             this.transform.Rotate(delta.y * _fpsEyeMoveSensitivity*-1, delta.x * _fpsEyeMoveSensitivity, 0);
             this.transform.rotation = Quaternion.Euler(this.transform.rotation.eulerAngles.x, this.transform.rotation.eulerAngles.y, 0);
-            _fpsEyeMovePreClickPos = Input.mousePosition;
 
             // FPS移動
             if(Input.GetKey(KeyCode.W))
@@ -189,12 +180,6 @@ namespace MoveEditCam
             {
                 MoveDown(_fpsMoveSensitivity);
             }
-
-            // // カーソルが画面内を無限に移動できるように設定
-            // if(Input.mousePosition.x == 0)
-            // {
-                
-            // }
         }
 
         void WheelMove()
